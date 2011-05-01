@@ -1,0 +1,78 @@
+#!/bin/ksh
+
+# NJC 04/30/11 
+# Script to retrieve webcam images, according to parameters associeated in the file of the list of URLs.
+
+# file containing list of webcam urls, their descriptions and other info
+URLLISTFILE="/home/nick/feh/newformat-webcam-urls"
+# set up current hour 
+HOUR=$(date "+%H")
+
+# Function to generate date-aware URLs.
+# URLs are specifi and need to hard-coded
+# input is IMAGE array, output is same array with url in [0] changed.
+function makedate {
+    DATE=$(date) 
+    case ${IMAGE[0]} in 
+	*instacam*)
+	    ;;
+	*)
+	    return
+	    ;;	
+    esac
+}
+
+# Function to check whether update is ok for this run.
+# updatetime is null or a string in format "0-24".
+# If current hour is within the updatetime, do the update
+function checkupdate {
+    typeset start end
+
+    start=${UPDATETIME%%-*}
+    end=${UPDATETIME##*-}
+    if [ start -le $HOUR -a $HOUR -le end ] ; then
+	return 1
+    else
+	echo "start $start, hour $HOUR, end $end" > /dev/stderr
+	return 0
+    fi
+}
+    
+
+
+cd /home/nick/feh/images_webcam || { echo "Image directory not found" ; exit 1 ; }
+rm -f *
+
+
+# Format:
+# URL,comment,date in URL (to be calculated) [1,0],time (hour)  to retrieve,output image name,
+# If date in URL, hand off to function that has awareness of specific URLs
+#URL='http://sohowww.nascom.nasa.gov/data/realtime/eit_304/1024/latest.jpg| # SOHO EIT 304 latest|'
+#http://wwc.instacam.com/instacamimg4/klast/04242011/042420110330_l.jpg|1|*|lasvegas1.jpg
+
+TICK=$(($(date "+%M")*60 + $(date "+%S")))
+# 'while' syntax below from: http://www.cyberciti.biz/faq/ksh-read-file/
+while IFS=\| read URL COMMENT DATE UPDATETIME NAME
+    do
+	# ignore comment lines (indicated by leading '# ' after stripping off rest of string)
+	if [ ${URL%% *} != '#' ] ; then
+	    # and don't bother if this is outside the update time.
+	    checkupdate
+	    if [ $? -eq 1  ] ; then
+		#echo url "$URL", updatetime "$UPDATETIME", name "$NAME",
+		wget --tries=3 --inet4-only "$URL" -O "$NAME"
+		# create caption file for feh
+		echo "$COMMENT" > "$NAME".txt
+	    fi
+	fi  
+    done  < "$URLLISTFILE"
+TOCK=$(($(date "+%M")*60 + $(date "+%S")))
+
+# create a list of images, without the accompanying caption files
+/bin/ls -1 !(*.txt) > images
+
+echo "Completed webcam image fetch in $(($TOCK - $TICK)) seconds."
+
+#feh -Z -F -f images --caption-path . -D 30
+
+# vim: set syntax=sh

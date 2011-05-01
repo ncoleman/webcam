@@ -1,0 +1,26 @@
+#!/bin/ksh
+
+# NJC 04/28/11 
+# Check if certain programs are running and, if not, set the screen blanker to "on".
+
+result=0
+
+# list of programs to test; add negated return code to previous value.  If total is zero, no programs were running.
+result=$(($result + !$(pgrep feh > /dev/null ; echo $?) ))
+result=$(($result + !$(pgrep xplanet > /dev/null ; echo $?) ))
+result=$(($result + !$(pgrep xearth > /dev/null ; echo $?) ))
+result=$(($result + !$(pgrep xsat > /dev/null ; echo $?) ))
+result=$(($result + !$(pgrep gpredict > /dev/null ; echo $?) ))
+
+# if no programs are running, do xset
+if [ $result  -eq  0 ] ; then
+    # debugging
+    # echo None are running
+    xset -display :0 s on
+    wsconsctl display.brightness=20
+else
+    wsconsctl display.brightness=30
+    echo "xset screen blanker not set, some programs in list are running" 1>&2
+fi
+
+
