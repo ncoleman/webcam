@@ -5,6 +5,7 @@
 
 # file containing list of webcam urls, their descriptions and other info
 URLLISTFILE="/home/nick/feh/newformat-webcam-urls"
+IMAGEDIR=/home/nick/feh/images_webcam
 # set up current hour 
 HOUR=$(date "+%H")
 
@@ -12,6 +13,8 @@ HOUR=$(date "+%H")
 # URLs are specifi and need to hard-coded
 # input is IMAGE array, output is same array with url in [0] changed.
 function makedate {
+# rothera 
+# awk 'BEGIN {FS="\""} ; /<img src=.*webcams/ { print $2 }' index.php | head -1
     DATE=$(date) 
     case ${IMAGE[0]} in 
 	*instacam*)
@@ -53,7 +56,7 @@ function checkupdate {
     
 
 
-cd /home/nick/feh/images_webcam || { echo "Image directory not found" ; exit 1 ; }
+cd $IMAGEDIR || { echo "Image directory not found" ; exit 1 ; }
 rm -f *
 
 
@@ -63,7 +66,8 @@ rm -f *
 #URL='http://sohowww.nascom.nasa.gov/data/realtime/eit_304/1024/latest.jpg| # SOHO EIT 304 latest|'
 #http://wwc.instacam.com/instacamimg4/klast/04242011/042420110330_l.jpg|1|*|lasvegas1.jpg
 
-TICK=$(($(date "+%M")*60 + $(date "+%S")))
+WGETERRORS=""
+TICK=$(date "+%s")
 # 'while' syntax below from: http://www.cyberciti.biz/faq/ksh-read-file/
 while IFS=\| read URL COMMENT DATE UPDATETIME NAME
     do
@@ -74,17 +78,22 @@ while IFS=\| read URL COMMENT DATE UPDATETIME NAME
 	    if [ $? -eq 1  ] ; then
 		#echo url "$URL", updatetime "$UPDATETIME", name "$NAME",
 		wget --tries=3 --inet4-only "$URL" -O "$NAME"
+		returncode=$?
+		if [ $returncode -ne 0 ] ; then
+		    WGETERRORS=$WGETERRORS"\nWget failed with $URL, error code is $returncode."
+		fi
 		# create caption file for feh
 		echo "$COMMENT" > "$NAME".txt
 	    fi
 	fi  
     done  < "$URLLISTFILE"
-TOCK=$(($(date "+%M")*60 + $(date "+%S")))
+TOCK=$(date "+%s")
 
 # create a list of images, without the accompanying caption files
 /bin/ls -1 !(*.txt) > images
 
 echo "Completed webcam image fetch in $(($TOCK - $TICK)) seconds."
+echo "Errors were: $WGETERRORS"
 
 #feh -Z -F -f images --caption-path . -D 30
 
