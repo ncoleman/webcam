@@ -25,16 +25,29 @@ function makedate {
 # Function to check whether update is ok for this run.
 # updatetime is null or a string in format "0-24".
 # If current hour is within the updatetime, do the update
+# Returns 1 to indicate ok, 0 for not (intentionally the opposite of true false
+# so that an empty value doesn't succeed.
 function checkupdate {
     typeset start end
 
     start=${UPDATETIME%%-*}
     end=${UPDATETIME##*-}
-    if [ start -le $HOUR -a $HOUR -le end ] ; then
-	return 1
+    # Handle case where start -> end crosses midnight
+    # e.g. 22 -> 5: with hour at 23 or 3 = success, hour at 20 or 6 = fail
+    if [ $start -ge $end ] ; then
+	if [ $start -le $HOUR -o $HOUR -le $end ] ; then
+	    return 1
+	else
+	    echo "$URL not retrieved: start $start, hour $HOUR, end $end" > /dev/stderr
+	    return 0
+	fi
     else
-	echo "start $start, hour $HOUR, end $end" > /dev/stderr
-	return 0
+	if [ $start -le $HOUR -a $HOUR -le $end ] ; then
+	    return 1
+	else
+	    echo "$URL not retrieved: start $start, hour $HOUR, end $end" > /dev/stderr
+	    return 0
+	fi
     fi
 }
     
