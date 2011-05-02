@@ -9,6 +9,18 @@ IMAGEDIR=/home/nick/feh/images_webcam
 # set up current hour 
 HOUR=$(date "+%H")
 
+# wget error code messages from the man page.
+set -A WGETERRCODE   "No problems occurred." \
+    "Generic error code."  \
+    "Parse error, e.g. command-line option" \
+    "File I/O error." \
+    "Network failure." \
+    "SSL verification failure." \
+    "Username/password authentication failure." \
+    "Protocol errors." \
+    "Server issued an error response."
+
+
 # Function to generate date-aware URLs.
 # URLs are specifi and need to hard-coded
 # input is IMAGE array, output is same array with url in [0] changed.
@@ -80,7 +92,7 @@ while IFS=\| read URL COMMENT DATE UPDATETIME NAME
 		wget --tries=3 --inet4-only "$URL" -O "$NAME"
 		returncode=$?
 		if [ $returncode -ne 0 ] ; then
-		    WGETERRORS=$WGETERRORS"\nWget failed with $URL, error code is $returncode."
+		    WGETERRORS=$WGETERRORS"\nWget failed with $URL, error code is $returncode ${WGETERRCODE[$returncode]}"
 		fi
 		# create caption file for feh
 		echo "$COMMENT" > "$NAME".txt
@@ -97,4 +109,4 @@ echo "Errors were: $WGETERRORS"
 
 #feh -Z -F -f images --caption-path . -D 30
 
-# vim: set syntax=sh
+# vim: set filetype=sh
