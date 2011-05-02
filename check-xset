@@ -14,9 +14,7 @@ result=$(($result + !$(pgrep gpredict > /dev/null ; echo $?) ))
 
 # if no programs are running, do xset
 if [ $result  -eq  0 ] ; then
-    # debugging
-    # echo None are running
-    xset -display :0 s on
+    xset -display :0 s on > /dev/null 2>&1	# ignore errors (e.g. X not running)
     wsconsctl display.brightness=20
 else
     wsconsctl display.brightness=30
