@@ -20,6 +20,8 @@ set -A WGETERRCODE   "No problems occurred." \
     "Protocol errors." \
     "Server issued an error response."
 
+# List of URLs not retrieved because they are outside the retrieve time
+URLOUTTIME=""
 
 # Function to generate date-aware URLs.
 # URLs are specifi and need to hard-coded
@@ -53,14 +55,14 @@ function checkupdate {
 	if [ $start -le $HOUR -o $HOUR -le $end ] ; then
 	    return 1
 	else
-	    echo "$URL not retrieved: start $start, hour $HOUR, end $end" > /dev/stderr
+	    URLOUTTIME=$URLOUTTIME"\n$URL not retrieved: start $start, hour $HOUR, end $end"
 	    return 0
 	fi
     else
 	if [ $start -le $HOUR -a $HOUR -le $end ] ; then
 	    return 1
 	else
-	    echo "$URL not retrieved: start $start, hour $HOUR, end $end" > /dev/stderr
+	    URLOUTTIME=$URLOUTTIME"\n$URL not retrieved: start $start, hour $HOUR, end $end"
 	    return 0
 	fi
     fi
@@ -105,7 +107,8 @@ TOCK=$(date "+%s")
 /bin/ls -1 !(*.txt) > images
 
 echo "Completed webcam image fetch in $(($TOCK - $TICK)) seconds."
-echo "Errors were: $WGETERRORS"
+echo "\nThese URLs were not retrieved as the retrieve time is outside their parameters: $URLOUTTIME"
+echo "\nErrors were: $WGETERRORS"
 
 #feh -Z -F -f images --caption-path . -D 30
 
