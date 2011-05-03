@@ -1,13 +1,17 @@
 #!/bin/ksh
 
 # NJC 04/30/11 
-# Script to retrieve webcam images, according to parameters associeated in the file of the list of URLs.
+# Script to retrieve webcam images, according to parameters associated in the file of the list of URLs.
+
+# ***** Global variables ***********
 
 # file containing list of webcam urls, their descriptions and other info
 URLLISTFILE="/home/nick/feh/newformat-webcam-urls"
 IMAGEDIR=/home/nick/feh/images_webcam
 # set up current hour 
 HOUR=$(date "+%H")
+# Force retrieval flag
+FORCE=0
 
 # wget error code messages from the man page.
 set -A WGETERRCODE   "No problems occurred." \
@@ -23,9 +27,10 @@ set -A WGETERRCODE   "No problems occurred." \
 # List of URLs not retrieved because they are outside the retrieve time
 URLOUTTIME=""
 
+# ************************* Functions ****************
+
 # Function to generate date-aware URLs.
-# URLs are specifi and need to hard-coded
-# input is IMAGE array, output is same array with url in [0] changed.
+# URLs are specific and the fix needs to be hard-coded.
 function makedate {
 # rothera 
 # awk 'BEGIN {FS="\""} ; /<img src=.*webcams/ { print $2 }' index.php | head -1
@@ -47,6 +52,10 @@ function makedate {
 function checkupdate {
     typeset start end
 
+    # always retreive if the user used the -f flag
+    if [ $FORCE -ne 0 ] ; then
+	return 1
+    fi
     start=${UPDATETIME%%-*}
     end=${UPDATETIME##*-}
     # Handle case where start -> end crosses midnight
@@ -68,17 +77,48 @@ function checkupdate {
     fi
 }
     
+function print_help {
+cat << EOFHELP
+Usage:  wget-images [ -f | -h ]
+Retrieve webcam images from a file containing a list of URLs and various parameters.
+Options:		 -f	    force retrieval irrespective of time constraints
+			 -h	    help (this message)
 
+EOFHELP
+exit 1
+}
 
+# ************** end of functions **********************
+
+# ************** Process command line options ********
+args=$(getopt fh $*) 
+if [ $? -ne 0 ] ; then
+    print_help
+fi
+set -- $args
+until [ $# -eq 0 ] ; do
+    case "$1"  in
+	-f)
+	    FORCE=1
+	    WGETERRORS=$WGETERRORS"\nForcing retrieval of all images."
+	    ;;
+	-h)
+	    print_help
+	    ;;
+    esac
+    shift
+done
+
+# ************ Main processing starts here ************
 cd $IMAGEDIR || { echo "Image directory not found" ; exit 1 ; }
 rm -f *
 
 
-# Format:
+# URL file format:
 # URL,comment,date in URL (to be calculated) [1,0],time (hour)  to retrieve,output image name,
 # If date in URL, hand off to function that has awareness of specific URLs
-#URL='http://sohowww.nascom.nasa.gov/data/realtime/eit_304/1024/latest.jpg| # SOHO EIT 304 latest|'
-#http://wwc.instacam.com/instacamimg4/klast/04242011/042420110330_l.jpg|1|*|lasvegas1.jpg
+# simple URL: http://www.djfeathers.com/feathercam/feathercam.jpg|# Feather cam|0|17-09|feathercam.jpg
+# date-neededd URL: http://www.antarctica.ac.uk/webcams/rothera/rothera_20110425_100033_rp.jpg| # Rothera Research station  (URL DATE specific)|1|0-24|rothera.jpg
 
 WGETERRORS=""
 TICK=$(date "+%s")
