@@ -111,7 +111,6 @@ done
 
 # ************ Main processing starts here ************
 cd $IMAGEDIR || { echo "Image directory not found" ; exit 1 ; }
-rm -f *
 
 
 # URL file format:
@@ -130,7 +129,7 @@ while IFS=\| read URL COMMENT DATE UPDATETIME NAME
 	    # and don't bother if this is outside the update time.
 	    checkupdate
 	    if [ $? -eq 1  ] ; then
-		#echo url "$URL", updatetime "$UPDATETIME", name "$NAME",
+		rm -f $NAME
 		wget --tries=3 --inet4-only "$URL" -O "$NAME"
 		returncode=$?
 		if [ $returncode -ne 0 ] ; then
