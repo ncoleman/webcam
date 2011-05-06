@@ -3,17 +3,19 @@
 # NJC 04/30/11 
 # Script to retrieve webcam images, according to parameters associated in the file of the list of URLs.
 
-# ***** Global variables ***********
+# TODO keywords to retrieve only those images;  URLs with dates.
 
-# file containing list of webcam urls, their descriptions and other info
-URLLISTFILE="/home/nick/feh/newformat-webcam-urls"
+# ************ Global variables ***********
+
+# file containing list of URLs
+URLLISTFILE="/home/nick/feh/webcam-urls"
+# directory to save images
 IMAGEDIR=/home/nick/feh/images_webcam
 # set up current hour 
 HOUR=$(date "+%H")
 # Force retrieval flag
 FORCE=0
-
-# wget error code messages from the man page.
+# wget error code messages (from the man page).  The array is set up so that the index is the error code returned by wget.
 set -A WGETERRCODE   "No problems occurred." \
     "Generic error code."  \
     "Parse error, e.g. command-line option" \
@@ -23,7 +25,6 @@ set -A WGETERRCODE   "No problems occurred." \
     "Username/password authentication failure." \
     "Protocol errors." \
     "Server issued an error response."
-
 # List of URLs not retrieved because they are outside the retrieve time
 URLOUTTIME=""
 
@@ -45,8 +46,8 @@ function makedate {
 }
 
 # Function to check whether update is ok for this run.
-# updatetime is null or a string in format "0-24".
-# If current hour is within the updatetime, do the update
+# updatetime is a string in format "0-24" representing a band of hours.
+# If current hour is within the updatetime, do the update.
 # Returns 1 to indicate ok, 0 for not (intentionally the opposite of true false
 # so that an empty value doesn't succeed.
 function checkupdate {
@@ -88,9 +89,8 @@ EOFHELP
 exit 1
 }
 
-# ************** end of functions **********************
-
 # ************** Process command line options ********
+
 args=$(getopt fh $*) 
 if [ $? -ne 0 ] ; then
     print_help
@@ -110,8 +110,8 @@ until [ $# -eq 0 ] ; do
 done
 
 # ************ Main processing starts here ************
-cd $IMAGEDIR || { echo "Image directory not found" ; exit 1 ; }
 
+cd $IMAGEDIR || { echo "Image directory not found" ; exit 1 ; }
 
 # URL file format:
 # URL,comment,date in URL (to be calculated) [1,0],time (hour)  to retrieve,output image name,
@@ -129,7 +129,7 @@ while IFS=\| read URL COMMENT DATE UPDATETIME NAME
 	    # and don't bother if this is outside the update time.
 	    checkupdate
 	    if [ $? -eq 1  ] ; then
-		rm -f $NAME
+		rm -f $NAME $NAME.txt
 		wget --tries=3 --inet4-only "$URL" -O "$NAME"
 		returncode=$?
 		if [ $returncode -ne 0 ] ; then
