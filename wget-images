@@ -7,14 +7,17 @@
 
 # ************ Global variables ***********
 
+# save repeated sub-shell calls for later tests of true or false
+`false` ; FALSE=$?
+`true` ; TRUE=$?
 # file containing list of URLs
 URLLISTFILE="/home/nick/feh/webcam-urls"
 # directory to save images
 IMAGEDIR=/home/nick/feh/images_webcam
 # set up current hour 
 HOUR=$(date "+%H")
-# Force retrieval flag
-FORCE=0
+# Forced retrieval flag
+FORCE=$FALSE
 # wget error code messages (from the man page).  The array is set up so that the index is the error code returned by wget.
 set -A WGETERRCODE   "No problems occurred." \
     "Generic error code."  \
@@ -48,14 +51,12 @@ function makedate {
 # Function to check whether update is ok for this run.
 # updatetime is a string in format "0-24" representing a band of hours.
 # If current hour is within the updatetime, do the update.
-# Returns 1 to indicate ok, 0 for not (intentionally the opposite of true false
-# so that an empty value doesn't succeed.
 function checkupdate {
-    typeset start end
+    typeset start end				# locals
 
     # always retreive if the user used the -f flag
-    if [ $FORCE -ne 0 ] ; then
-	return 1
+    if [ $FORCE -eq $TRUE ] ; then
+	return $TRUE
     fi
     start=${UPDATETIME%%-*}
     end=${UPDATETIME##*-}
@@ -63,17 +64,17 @@ function checkupdate {
     # e.g. 22 -> 5: with hour at 23 or 3 = success, hour at 20 or 6 = fail
     if [ $start -ge $end ] ; then
 	if [ $start -le $HOUR -o $HOUR -le $end ] ; then
-	    return 1
+	    return $TRUE
 	else
 	    URLOUTTIME=$URLOUTTIME"\n$URL not retrieved: start $start, hour $HOUR, end $end"
-	    return 0
+	    return $FALSE
 	fi
     else
 	if [ $start -le $HOUR -a $HOUR -le $end ] ; then
-	    return 1
+	    return $TRUE
 	else
 	    URLOUTTIME=$URLOUTTIME"\n$URL not retrieved: start $start, hour $HOUR, end $end"
-	    return 0
+	    return $FALSE
 	fi
     fi
 }
@@ -99,7 +100,7 @@ set -- $args
 until [ $# -eq 0 ] ; do
     case "$1"  in
 	-f)
-	    FORCE=1
+	    FORCE=$TRUE
 	    WGETERRORS=$WGETERRORS"\nForcing retrieval of all images."
 	    ;;
 	-h)
@@ -128,7 +129,7 @@ while IFS=\| read URL COMMENT DATE UPDATETIME NAME
 	if [ ${URL%% *} != '#' ] ; then
 	    # and don't bother if this is outside the update time.
 	    checkupdate
-	    if [ $? -eq 1  ] ; then
+	    if [ $? -eq $TRUE  ] ; then
 		rm -f $NAME $NAME.txt
 		wget --tries=3 --inet4-only "$URL" -O "$NAME"
 		returncode=$?
