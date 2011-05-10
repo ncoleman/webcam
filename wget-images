@@ -4,6 +4,7 @@
 # Script to retrieve webcam images, according to parameters associated in the file of the list of URLs.
 
 # TODO keywords to retrieve only those images;  URLs with dates.
+# in linux, but not in OpenBSD: TZ="America/New_York"  date --date='TZ="Europe/Paris" 2004-10-31 06:30'
 
 # ************ Global variables ***********
 
@@ -18,6 +19,8 @@ IMAGEDIR=/home/nick/feh/images_webcam
 HOUR=$(date "+%H")
 # Forced retrieval flag
 FORCE=$FALSE
+# list of keywords to search for
+KEYWORDS=""
 # wget error code messages (from the man page).  The array is set up so that the index is the error code returned by wget.
 set -A WGETERRCODE   "No problems occurred." \
     "Generic error code."  \
@@ -35,17 +38,31 @@ URLOUTTIME=""
 
 # Function to generate date-aware URLs.
 # URLs are specific and the fix needs to be hard-coded.
-function makedate {
-# rothera 
-# awk 'BEGIN {FS="\""} ; /<img src=.*webcams/ { print $2 }' index.php | head -1
-    DATE=$(date) 
-    case ${IMAGE[0]} in 
-	*instacam*)
+function makedateurl {
+    case $NAME in
+	rothera*)
+	    URL=$(awk 'BEGIN { FS="\"" } /div class="main/ {  getline ;print $2;  } ' rothera.src)
+	    NAME=rothera.jpg
 	    ;;
-	*)
-	    return
-	    ;;	
+	halley*)
+	    URL=$(awk 'BEGIN { FS="\"" } /div class="main/ {  getline ;print $2;  } ' halley.src)
+	    NAME=halley.jpg
+	    ;;
+	birdisland*)
+	    URL=$(awk 'BEGIN { FS="\"" } /div class="main/ {  getline ;print $2;  } ' birdisland.src)
+	    NAME=birdisland.jpg
+	    ;;
+	rssshackleton*)
+	    URL=$(awk 'BEGIN { FS="\"" } /div class="main/ {  getline ;print $2;  } ' rssshackleton.src)
+	    NAME=rssshackleton.jpg
+	    ;;
+	lasvegas1*)
+	    URL=$(awk 'BEGIN { FS="\"" } /img name="anim/ {  print $4;  } ' lasvegas1.src)
+	    NAME=lasvegas1.jpg
+	    ;;
     esac
+    
+    getimage
 }
 
 # Function to check whether update is ok for this run.
@@ -79,11 +96,21 @@ function checkupdate {
     fi
 }
     
+function getimage {
+    wget --tries=3 --prefer-family=IPv4 --user-agent="Mozilla/4.0" "$URL" -O "$NAME"
+    returncode=$?
+    if [ $returncode -ne 0 ] ; then
+	WGETERRORS=$WGETERRORS"\nWget failed with $URL, error code is $returncode ${WGETERRCODE[$returncode]}"
+    fi
+}
+
+
 function print_help {
 cat << EOFHELP
-Usage:  wget-images [ -f | -h ]
-Retrieve webcam images from a file containing a list of URLs and various parameters.
-Options:		 -f	    force retrieval irrespective of time constraints
+Usage:  wget-images [-f] [-k keyword1[,keyword2,keyword3,...]] | [-h]
+Retrieve webcam images from the URLs contained in a file of lists of URLs and various constraints.
+Options:		 -f	    force retrieval irrespective of any constraints
+			 -k words   retrieve only URLs whose keyword matchs one of the comma-separated list of the words supplied (not implemented)
 			 -h	    help (this message)
 
 EOFHELP
@@ -92,7 +119,7 @@ exit 1
 
 # ************** Process command line options ********
 
-args=$(getopt fh $*) 
+args=$(getopt fk:h $*) 
 if [ $? -ne 0 ] ; then
     print_help
 fi
@@ -103,6 +130,10 @@ until [ $# -eq 0 ] ; do
 	    FORCE=$TRUE
 	    WGETERRORS=$WGETERRORS"\nForcing retrieval of all images."
 	    ;;
+	-k)
+	    KEYWORDS="$2"
+	    shift
+	    ;;
 	-h)
 	    print_help
 	    ;;
@@ -111,6 +142,10 @@ until [ $# -eq 0 ] ; do
 done
 
 # ************ Main processing starts here ************
+
+# Save feh running state
+pkill feh
+fehrunning=$?
 
 cd $IMAGEDIR || { echo "Image directory not found" ; exit 1 ; }
 
@@ -127,14 +162,14 @@ while IFS=\| read URL COMMENT DATE UPDATETIME NAME
     do
 	# ignore comment lines (indicated by leading '# ' after stripping off rest of string)
 	if [ ${URL%% *} != '#' ] ; then
-	    # and don't bother if this is outside the update time.
+	    # and only bother if this is inside the update time.
 	    checkupdate
 	    if [ $? -eq $TRUE  ] ; then
 		rm -f $NAME $NAME.txt
-		wget --tries=3 --inet4-only "$URL" -O "$NAME"
-		returncode=$?
-		if [ $returncode -ne 0 ] ; then
-		    WGETERRORS=$WGETERRORS"\nWget failed with $URL, error code is $returncode ${WGETERRCODE[$returncode]}"
+		getimage
+		# if this url needs to be adjusted for inbuilt date or time, do that.
+		if [ DATE -eq 1 ] ; then
+		    makedateurl
 		fi
 		# create caption file for feh
 		echo "$COMMENT" > "$NAME".txt
@@ -150,6 +185,9 @@ echo "Completed webcam image fetch in $(($TOCK - $TICK)) seconds."
 echo "\nThese URLs were not retrieved as the retrieve time is outside their parameters: $URLOUTTIME"
 echo "\nErrors were: $WGETERRORS"
 
-#feh -Z -F -f images --caption-path . -D 30
+# Restore feh running state
+if [ $fehrunning -eq 0 ] ; then
+    DISPLAY=:0.0 /usr/local/bin/feh -Z -F -f images --caption-path . -D 30 &
+fi
 
 # vim: set filetype=sh
