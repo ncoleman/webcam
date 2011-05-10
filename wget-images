@@ -172,7 +172,7 @@ while IFS=\| read URL COMMENT DATE UPDATETIME NAME
 		    makedateurl
 		fi
 		# create caption file for feh
-		echo "$COMMENT" > "$NAME".txt
+		echo "$COMMENT --  $(/bin/date +%R)" > "$NAME".txt
 	    fi
 	fi  
     done  < "$URLLISTFILE"
