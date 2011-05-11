@@ -40,6 +40,11 @@ URLOUTTIME=""
 # URLs are specific and the fix needs to be hard-coded.
 function make_date_url {
     case $NAME in
+	lasvegas1*)
+	    URL=$(awk 'BEGIN { FS="\"" } /img name="anim/ {  print $4;  } ' lasvegas1.src)
+	    NAME=lasvegas1.jpg
+	    ;;
+	# UK Antarctic Bases
 	rothera*)
 	    URL=$(awk 'BEGIN { FS="\"" } /div class="main/ {  getline ;print $2;  } ' rothera.src)
 	    NAME=rothera.jpg
@@ -56,9 +61,26 @@ function make_date_url {
 	    URL=$(awk 'BEGIN { FS="\"" } /div class="main/ {  getline ;print $2;  } ' rssshackleton.src)
 	    NAME=rssshackleton.jpg
 	    ;;
-	lasvegas1*)
-	    URL=$(awk 'BEGIN { FS="\"" } /img name="anim/ {  print $4;  } ' lasvegas1.src)
-	    NAME=lasvegas1.jpg
+	# Australian Antarctic Bases
+	davis*)
+	    URL=$(awk 'BEGIN { FS="\"" } /div class="main-image/ {  print $4;  } ' davis.src)
+	    NAME=davis.jpg
+	    ;;
+	casey*)
+	    URL=$(awk 'BEGIN { FS="\"" } /div class="main-image/ {  print $4;  } ' casey.src)
+	    NAME=casey.jpg
+	    ;;
+	mawson*)
+	    URL=$(awk 'BEGIN { FS="\"" } /div class="main-image/ {  print $4;  } ' mawson.src)
+	    NAME=mawson.jpg
+	    ;;
+	macquarie*)
+	    URL=$(awk 'BEGIN { FS="\"" } /div class="main-image/ {  print $4;  } ' macquarie.src)
+	    NAME=macquarie.jpg
+	    ;;
+	auroraship*)
+	    URL=(awk 'BEGIN { FS="\"" } /<img src="http/ {  print $2; exit } ' auroraship.src)
+	    NAME=auroraship.jpg
 	    ;;
     esac
     
