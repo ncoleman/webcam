@@ -38,7 +38,7 @@ URLOUTTIME=""
 
 # Function to generate date-aware URLs.
 # URLs are specific and the fix needs to be hard-coded.
-function makedateurl {
+function make_date_url {
     case $NAME in
 	rothera*)
 	    URL=$(awk 'BEGIN { FS="\"" } /div class="main/ {  getline ;print $2;  } ' rothera.src)
@@ -62,7 +62,7 @@ function makedateurl {
 	    ;;
     esac
     
-    getimage
+    get_image
 }
 
 # Function to check whether update is ok for this run.
@@ -96,7 +96,8 @@ function checkupdate {
     fi
 }
     
-function getimage {
+# Function to retrieve the current image.  Assumes the relevant variables are already set.
+function get_image {
     wget --tries=3 --prefer-family=IPv4 --user-agent="Mozilla/4.0" "$URL" -O "$NAME"
     returncode=$?
     if [ $returncode -ne 0 ] ; then
@@ -148,6 +149,7 @@ pkill feh
 fehrunning=$?
 
 cd $IMAGEDIR || { echo "Image directory not found" ; exit 1 ; }
+rm -f *
 
 # URL file format:
 # URL,comment,date in URL (to be calculated) [1,0],time (hour)  to retrieve,output image name,
@@ -166,10 +168,10 @@ while IFS=\| read URL COMMENT DATE UPDATETIME NAME
 	    checkupdate
 	    if [ $? -eq $TRUE  ] ; then
 		rm -f $NAME $NAME.txt
-		getimage
+		get_image
 		# if this url needs to be adjusted for inbuilt date or time, do that.
-		if [ DATE -eq 1 ] ; then
-		    makedateurl
+		if [ $DATE -eq 1 ] ; then
+		    make_date_url
 		fi
 		# create caption file for feh
 		echo "$COMMENT --  $(/bin/date +%R)" > "$NAME".txt
