@@ -36,8 +36,8 @@ URLOUTTIME=""
 
 # ************************* Functions ****************
 
-# Function to generate date-aware URLs.
-# URLs are specific and the fix needs to be hard-coded.
+# Function to generate date-aware URLs or to handle cases where the URL is embedded in the source html.
+# URLs are specific to their own situation and the fix needs to be hard-coded.
 function make_date_url {
     case $NAME in
 	lasvegas1*)
@@ -79,7 +79,7 @@ function make_date_url {
 	    NAME=macquarie.jpg
 	    ;;
 	auroraship*)
-	    URL=(awk 'BEGIN { FS="\"" } /<img src="http/ {  print $2; exit } ' auroraship.src)
+	    URL=$(awk 'BEGIN { FS="\"" } /<img src="http/ {  print $2; exit } ' auroraship.src)
 	    NAME=auroraship.jpg
 	    ;;
     esac
@@ -127,7 +127,7 @@ function get_image {
     fi
 }
 
-
+# Function to print a help message and exit.
 function print_help {
 cat << EOFHELP
 Usage:  wget-images [-f] [-k keyword1[,keyword2,keyword3,...]] | [-h]
@@ -171,7 +171,6 @@ pkill feh
 fehrunning=$?
 
 cd $IMAGEDIR || { echo "Image directory not found" ; exit 1 ; }
-rm -f *
 
 # URL file format:
 # URL,comment,date in URL (to be calculated) [1,0],time (hour)  to retrieve,output image name,
@@ -211,7 +210,7 @@ echo "\nErrors were: $WGETERRORS"
 
 # Restore feh running state
 if [ $fehrunning -eq 0 ] ; then
-    DISPLAY=:0.0 /usr/local/bin/feh -z -Z -F -f $IMAGEDIR/images --caption-path $IMAGEDIR -D 30 &
+    DISPLAY=:0.0 /usr/local/bin/feh -z -Z -F -f $IMAGEDIR/images --caption-path . -D 30 &
 fi
 
 # vim: set filetype=sh
