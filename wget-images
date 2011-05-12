@@ -144,6 +144,7 @@ Usage:  wget-images [-f] [-k keyword1[,keyword2,keyword3,...]] | [-h]
 Retrieve webcam images from the URLs contained in a file of lists of URLs and various constraints.
 Options:		 -f	    force retrieval irrespective of any constraints
 			 -k words   retrieve only URLs whose keyword matchs one of the comma-separated list of the words supplied (not implemented)
+			 -z	    don't restart feh
 			 -h	    help (this message)
 
 EOFHELP
@@ -151,6 +152,10 @@ exit 1
 }
 
 # ************** Process command line options ********
+
+# Save feh running state
+pkill feh
+fehrunning=$?
 
 args=$(getopt fk:h $*) 
 if [ $? -ne 0 ] ; then
@@ -167,6 +172,10 @@ until [ $# -eq 0 ] ; do
 	    KEYWORDS="$2"
 	    shift
 	    ;;
+	-z)
+	    # dont start feh 
+	    fehrunning=1
+	    ;;
 	-h)
 	    print_help
 	    ;;
@@ -175,10 +184,6 @@ until [ $# -eq 0 ] ; do
 done
 
 # ************ Main processing starts here ************
-
-# Save feh running state
-pkill feh
-fehrunning=$?
 
 cd $IMAGEDIR || { echo "Image directory not found" ; exit 1 ; }
 
