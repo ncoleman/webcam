@@ -43,44 +43,54 @@ function make_date_url {
 	lasvegas1*)
 	    URL=$(awk 'BEGIN { FS="\"" } /img name="anim/ {  print $4;  } ' lasvegas1.src)
 	    NAME=lasvegas1.jpg
+	    rm -f lasvegas1.src
 	    ;;
 	# UK Antarctic Bases
 	rothera*)
 	    URL=$(awk 'BEGIN { FS="\"" } /div class="main/ {  getline ;print $2;  } ' rothera.src)
 	    NAME=rothera.jpg
+	    rm -f rothera.src
 	    ;;
 	halley*)
 	    URL=$(awk 'BEGIN { FS="\"" } /div class="main/ {  getline ;print $2;  } ' halley.src)
 	    NAME=halley.jpg
+	    rm -f halley.src
 	    ;;
 	birdisland*)
 	    URL=$(awk 'BEGIN { FS="\"" } /div class="main/ {  getline ;print $2;  } ' birdisland.src)
 	    NAME=birdisland.jpg
+	    rm -f birdisland.src
 	    ;;
 	rssshackleton*)
 	    URL=$(awk 'BEGIN { FS="\"" } /div class="main/ {  getline ;print $2;  } ' rssshackleton.src)
 	    NAME=rssshackleton.jpg
+	    rm -f rssshackleton.src
 	    ;;
 	# Australian Antarctic Bases
 	davis*)
 	    URL=$(awk 'BEGIN { FS="\"" } /div class="main-image/ {  print $4;  } ' davis.src)
 	    NAME=davis.jpg
+	    rm -f davis.src
 	    ;;
 	casey*)
 	    URL=$(awk 'BEGIN { FS="\"" } /div class="main-image/ {  print $4;  } ' casey.src)
 	    NAME=casey.jpg
+	    rm -f casey.src
 	    ;;
 	mawson*)
 	    URL=$(awk 'BEGIN { FS="\"" } /div class="main-image/ {  print $4;  } ' mawson.src)
 	    NAME=mawson.jpg
+	    rm -f mawson.src
 	    ;;
 	macquarie*)
 	    URL=$(awk 'BEGIN { FS="\"" } /div class="main-image/ {  print $4;  } ' macquarie.src)
 	    NAME=macquarie.jpg
+	    rm -f macquarie.src
 	    ;;
 	auroraship*)
 	    URL=$(awk 'BEGIN { FS="\"" } /<img src="http/ {  print $2; exit } ' auroraship.src)
 	    NAME=auroraship.jpg
+	    rm -f auroraship.src
 	    ;;
     esac
     
