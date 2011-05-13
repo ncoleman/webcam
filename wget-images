@@ -1,10 +1,10 @@
 #!/bin/ksh
+# Use bash, not sh,  if you don't have ksh. This script needs the ability for variables to have arrays.
 
 # NJC 04/30/11 
 # Script to retrieve webcam images, according to parameters associated in the file of the list of URLs.
 
-# TODO keywords to retrieve only those images;  URLs with dates.
-# in linux, but not in OpenBSD: TZ="America/New_York"  date --date='TZ="Europe/Paris" 2004-10-31 06:30'
+# TODO keywords to retrieve only those images; 
 
 # ************ Global variables ***********
 
@@ -129,8 +129,9 @@ function checkupdate {
 }
     
 # Function to retrieve the current image.  Assumes the relevant variables are already set.
+# TODO An extra flag can be passed in on the function call (e.g. --header=xxx)
 function get_image {
-    wget --tries=3 --prefer-family=IPv4 --user-agent="Mozilla/4.0" "$URL" -O "$NAME"
+    wget  --quiet --tries=3 --prefer-family=IPv4 --user-agent="Mozilla/4.0" "$URL" -O "$NAME"
     returncode=$?
     if [ $returncode -ne 0 ] ; then
 	WGETERRORS=$WGETERRORS"\nWget failed with $URL, error code is $returncode ${WGETERRCODE[$returncode]}"
@@ -186,6 +187,7 @@ done
 # ************ Main processing starts here ************
 
 cd $IMAGEDIR || { echo "Image directory not found" ; exit 1 ; }
+find $IMAGEDIR -mtime +7 -exec rm {} \;				# get rid of old images
 
 # URL file format:
 # URL,comment,date in URL (to be calculated) [1,0],time (hour)  to retrieve,output image name,
@@ -196,7 +198,7 @@ cd $IMAGEDIR || { echo "Image directory not found" ; exit 1 ; }
 WGETERRORS=""
 TICK=$(date "+%s")
 # 'while' syntax below from: http://www.cyberciti.biz/faq/ksh-read-file/
-while IFS=\| read URL COMMENT DATE UPDATETIME NAME
+while IFS=\| read URL COMMENT DATEADJ UPDATETIME NAME
     do
 	# ignore comment lines (indicated by leading '# ' after stripping off rest of string)
 	if [ ${URL%% *} != '#' ] ; then
@@ -206,7 +208,7 @@ while IFS=\| read URL COMMENT DATE UPDATETIME NAME
 		rm -f $NAME $NAME.txt
 		get_image
 		# if this url needs to be adjusted for inbuilt date or time, do that.
-		if [ $DATE -eq 1 ] ; then
+		if [ $DATEADJ -eq 1 ] ; then
 		    make_date_url
 		fi
 		# create caption file for feh
