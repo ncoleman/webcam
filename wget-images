@@ -227,7 +227,7 @@ echo "\nErrors were: $WGETERRORS"
 
 # Restore feh running state
 if [ $fehrunning -eq 0 ] ; then
-    DISPLAY=:0.0 /usr/local/bin/feh -z -Z -F -f $IMAGEDIR/images --caption-path . -D 30 &
+    DISPLAY=:0.0 /usr/local/bin/feh -z -Z -F -f $IMAGEDIR/images --caption-path . -D 30 >/dev/null &
 fi
 
 # vim: set filetype=sh
