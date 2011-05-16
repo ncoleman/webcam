@@ -92,9 +92,13 @@ function make_date_url {
 	    NAME=auroraship.jpg
 	    rm -f auroraship.src
 	    ;;
+	portdouglas*)
+	    echo "Retrieving port dougles"
+	    HEADER=--header='ETag: "7ca8f8-a74f-e1ef2a00"'
+	    ;;
     esac
     
-    get_image
+    get_image $HEADER
 }
 
 # Function to check whether update is ok for this run.
@@ -131,7 +135,7 @@ function checkupdate {
 # Function to retrieve the current image.  Assumes the relevant variables are already set.
 # TODO An extra flag can be passed in on the function call (e.g. --header=xxx)
 function get_image {
-    wget  --quiet --tries=3 --prefer-family=IPv4 --user-agent="Mozilla/4.0" "$URL" -O "$NAME"
+    wget  --quiet --tries=3 --prefer-family=IPv4 --user-agent="Mozilla/4.0" $1 -O "$NAME" "$URL" 
     returncode=$?
     if [ $returncode -ne 0 ] ; then
 	WGETERRORS=$WGETERRORS"\nWget failed with $URL, error code is $returncode ${WGETERRCODE[$returncode]}"
@@ -141,7 +145,7 @@ function get_image {
 # Function to print a help message and exit.
 function print_help {
 cat << EOFHELP
-Usage:  wget-images [-f] [-k keyword1[,keyword2,keyword3,...]] | [-h]
+Usage:  wget-images [-z][-f][-k keyword1[,keyword2,keyword3,...]] | [-h]
 Retrieve webcam images from the URLs contained in a file of lists of URLs and various constraints.
 Options:		 -f	    force retrieval irrespective of any constraints
 			 -k words   retrieve only URLs whose keyword matchs one of the comma-separated list of the words supplied (not implemented)
