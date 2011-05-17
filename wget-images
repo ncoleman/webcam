@@ -39,6 +39,7 @@ URLOUTTIME=""
 # Function to generate date-aware URLs or to handle cases where the URL is embedded in the source html.
 # URLs are specific to their own situation and the fix needs to be hard-coded.
 function make_date_url {
+    typeset fetch=1
     case $NAME in
 	lasvegas1*)
 	    URL=$(awk 'BEGIN { FS="\"" } /img name="anim/ {  print $4;  } ' lasvegas1.src)
@@ -96,9 +97,17 @@ function make_date_url {
 	    echo "Retrieving port dougles"
 	    HEADER=--header='ETag: "7ca8f8-a74f-e1ef2a00"'
 	    ;;
+	london*)
+	    # the london skyline has a large black area to the right added.  Remove it.
+	    convert london_orig.jpg -resize 640x376 london.jpg
+	    /bin/rm london_orig.jpg
+	    fetch=0
+	    ;;
     esac
-    
-    get_image $HEADER
+   
+    if [ $fetch -ne 0 ] ; then 
+	get_image $HEADER
+    fi
 }
 
 # Function to check whether update is ok for this run.
@@ -183,6 +192,7 @@ until [ $# -eq 0 ] ; do
 	    ;;
 	-h)
 	    print_help
+	    exit
 	    ;;
     esac
     shift
