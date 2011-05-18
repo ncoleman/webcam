@@ -40,7 +40,7 @@ URLOUTTIME=""
 # URLs are specific to their own situation and the fix needs to be hard-coded.
 function make_date_url {
     # fetch indicates whether this image needs to be fetched from the internet.
-    # Used when the image needs manipulating rather than a new image fetched.
+    # Used when the image needs manipulating rather than a new image fetched;
     # the default is to fetch a new image.
     typeset fetch=1
     case $NAME in
@@ -104,6 +104,7 @@ function make_date_url {
 	    # the london skyline has a large black area to the right added.  Remove it.
 	    convert london_orig.jpg -resize 640x376 london.jpg
 	    /bin/rm london_orig.jpg
+	    NAME=london.jpg
 	    fetch=0
 	    ;;
     esac
