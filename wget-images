@@ -97,12 +97,13 @@ function make_date_url {
 	    rm -f auroraship.src
 	    ;;
 	portdouglas*)
-	    echo "Retrieving port dougles"
+	    echo "Retrieving port douglas"
 	    HEADER=--header='ETag: "7ca8f8-a74f-e1ef2a00"'
+	    HEADER=--header="referer: 'http://www.downunder.com'"
 	    ;;
 	london_orig*)
 	    # the london skyline has a large black area to the right added.  Remove it.
-	    convert london_orig.jpg -resize 640x376 london.jpg
+	    convert london_orig.jpg -crop 640x376 london.jpg
 	    /bin/rm london_orig.jpg
 	    NAME=london.jpg
 	    fetch=0
