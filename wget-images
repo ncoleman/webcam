@@ -116,7 +116,11 @@ function make_date_url {
 }
 
 # Function to check whether update is ok for this run.
-# updatetime is a string in format "0-24[,0-25]" representing a band of hours.
+#
+# updatetime is a string in format "0-24[,0-24]" representing a band of hours.
+# Two (TODO allow unlimited) bands can be checked, to allow for such use cases as one retrieval
+# at dawn and one retrieval at dusk and no other retrievals.  
+#
 # If current hour is within the updatetime, do the update.
 function checkupdate {
     typeset time start end am pm		# locals
