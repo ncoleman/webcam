@@ -116,34 +116,45 @@ function make_date_url {
 }
 
 # Function to check whether update is ok for this run.
-# updatetime is a string in format "0-24" representing a band of hours.
+# updatetime is a string in format "0-24[,0-25]" representing a band of hours.
 # If current hour is within the updatetime, do the update.
 function checkupdate {
-    typeset start end				# locals
+    typeset time start end am pm		# locals
 
     # always retreive if the user used the -f flag
     if [ $FORCE -eq $TRUE ] ; then
 	return $TRUE
     fi
-    start=${UPDATETIME%%-*}
-    end=${UPDATETIME##*-}
-    # Handle case where start -> end crosses midnight
-    # e.g. 22 -> 5: with hour at 23 or 3 = success, hour at 20 or 6 = fail
-    if [ $start -ge $end ] ; then
-	if [ $start -le $HOUR -o $HOUR -le $end ] ; then
-	    return $TRUE
-	else
-	    URLOUTTIME=$URLOUTTIME"\n$URL not retrieved: start $start, hour $HOUR, end $end"
-	    return $FALSE
-	fi
-    else
-	if [ $start -le $HOUR -a $HOUR -le $end ] ; then
-	    return $TRUE
-	else
-	    URLOUTTIME=$URLOUTTIME"\n$URL not retrieved: start $start, hour $HOUR, end $end"
-	    return $FALSE
-	fi
+
+    am=$(echo $UPDATETIME | cut -d , -f 1)
+    pm=$(echo $UPDATETIME | cut -d , -f 2)
+    # 'cut' doesn't give an empty field if the field is not found, it gives the previous field, so force it empty.
+    if [ $am == $pm ] ; then
+	pm=""
     fi
+    echo "am is $am, pm is $pm"
+    for time in $am $pm ; do
+	# reached an empty time without finding a TRUE, so exit;
+	if [ -z $time ] ; then
+	    break;
+	fi
+	start=${time%%-*}
+	end=${time##*-}
+	# To avoid complicated if...then, if a true is found, return immediately, otherwise keep processing
+	# Handle case where start -> end crosses midnight
+	# e.g. 22 -> 5: with hour at 23 or 3 = success, hour at 20 or 6 = fail
+	if [ $start -ge $end ] ; then
+	    if [ $start -le $HOUR -o $HOUR -le $end ] ; then
+		return $TRUE
+	    fi
+	else
+	    if [ $start -le $HOUR -a $HOUR -le $end ] ; then
+		return $TRUE
+	    fi
+	fi
+    done
+    URLOUTTIME=$URLOUTTIME"\n$URL not retrieved: hour $HOUR, updatetimes $UPDATETIME."
+    return $FALSE
 }
     
 # Function to retrieve the current image.  Assumes the relevant variables are already set.
