@@ -123,21 +123,22 @@ function make_date_url {
 #
 # If current hour is within the updatetime, do the update.
 function checkupdate {
-    typeset time start end am pm		# locals
+    typeset time start end band1 band2		# locals
 
-    # always retreive if the user used the -f flag
+    # always retrieve if the user used the -f flag
     if [ $FORCE -eq $TRUE ] ; then
 	return $TRUE
     fi
 
-    am=$(echo $UPDATETIME | cut -d , -f 1)
-    pm=$(echo $UPDATETIME | cut -d , -f 2)
+    band1=$(echo $UPDATETIME | cut -d , -f 1)
+    band2=$(echo $UPDATETIME | cut -d , -f 2)
+    # band3, band4, etc
+    #band3=$(echo $UPDATETIME | cut -d , -f 3)
     # 'cut' doesn't give an empty field if the field is not found, it gives the previous field, so force it empty.
-    if [ $am == $pm ] ; then
-	pm=""
+    if [ $band1 == $band2 ] ; then
+	band2=""
     fi
-    echo "am is $am, pm is $pm"
-    for time in $am $pm ; do
+    for time in $band1 $band2 ; do
 	# reached an empty time without finding a TRUE, so exit;
 	if [ -z $time ] ; then
 	    break;
