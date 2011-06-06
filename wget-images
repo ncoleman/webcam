@@ -222,7 +222,7 @@ done
 # ************ Main processing starts here ************
 
 cd $IMAGEDIR || { echo "Image directory not found" ; exit 1 ; }
-find $IMAGEDIR -mtime +7 -exec rm {} \;				# get rid of old images
+find $IMAGEDIR -mtime +7 -exec /bin/rm {} {}.txt \;				# get rid of old images
 
 # URL file format:
 # URL,comment,date in URL (to be calculated) [1,0],time (hour)  to retrieve,output image name,
@@ -262,7 +262,7 @@ echo "\nErrors were: $WGETERRORS"
 
 # Restore feh running state
 if [ $fehrunning -eq 0 ] ; then
-    DISPLAY=:0.0 /usr/local/bin/feh --randomize --auto-zoom --fullscreen --filelist $IMAGEDIR/images --caption-path . --slideshow-delay 30 >/dev/null &
+    (DISPLAY=:0.0 /usr/local/bin/feh --randomize --auto-zoom --fullscreen --filelist $IMAGEDIR/images --caption-path . --slideshow-delay 30 >/dev/null) &
 fi
 
 # vim: set filetype=sh
