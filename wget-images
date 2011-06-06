@@ -165,7 +165,7 @@ function checkupdate {
 # Function to retrieve the current image.  Assumes the relevant variables are already set.
 # TODO An extra flag can be passed in on the function call (e.g. --header=xxx)
 function get_image {
-    wget  --quiet --tries=3 --prefer-family=IPv4 --user-agent="Mozilla/4.0" $1 -O "$NAME" "$URL" 
+    wget  --quiet --tries=3 --timeout=600 --prefer-family=IPv4 --user-agent="Mozilla/4.0" $1 -O "$NAME" "$URL" 
     returncode=$?
     if [ $returncode -ne 0 ] ; then
 	WGETERRORS=$WGETERRORS"\nWget failed with $URL, error code is $returncode ${WGETERRCODE[$returncode]}"
@@ -223,6 +223,7 @@ done
 
 cd $IMAGEDIR || { echo "Image directory not found" ; exit 1 ; }
 find $IMAGEDIR -mtime +7 -exec /bin/rm {} {}.txt \;				# get rid of old images
+echo "Wget images run started at $(/bin/date +%R)"
 
 # URL file format:
 # URL,comment,date in URL (to be calculated) [1,0],time (hour)  to retrieve,output image name,
@@ -256,6 +257,7 @@ TOCK=$(date "+%s")
 # create a list of images, without the accompanying caption files
 /bin/ls -1 !(*.txt) > images
 
+echo "Wget images run finished at $(/bin/date +%R)"
 echo "Completed webcam image fetch in $(($TOCK - $TICK)) seconds."
 echo "\nThese URLs were not retrieved as the retrieve time is outside their parameters: $URLOUTTIME"
 echo "\nErrors were: $WGETERRORS"
