@@ -103,7 +103,7 @@ function make_date_url {
 	    ;;
 	london_orig*)
 	    # the london skyline has a large black area to the right added.  Remove it.
-	    convert london_orig.jpg -crop 640x376 london.jpg
+	    convert london_orig.jpg -crop 640x376+0+0 london.jpg
 	    /bin/rm london_orig.jpg
 	    NAME=london.jpg
 	    fetch=0
@@ -165,7 +165,7 @@ function checkupdate {
 # Function to retrieve the current image.  Assumes the relevant variables are already set.
 # TODO An extra flag can be passed in on the function call (e.g. --header=xxx)
 function get_image {
-    wget  --quiet --tries=3 --timeout=600 --prefer-family=IPv4 --user-agent="Mozilla/4.0" $1 -O "$NAME" "$URL" 
+    wget  --quiet --tries=3 --timeout=300 --prefer-family=IPv4 --user-agent="Mozilla/4.0" $1 -O "$NAME" "$URL" 
     returncode=$?
     if [ $returncode -ne 0 ] ; then
 	WGETERRORS=$WGETERRORS"\nWget failed with $URL, error code is $returncode ${WGETERRCODE[$returncode]}"
