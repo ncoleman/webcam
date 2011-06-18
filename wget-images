@@ -101,11 +101,26 @@ function make_date_url {
 	    HEADER=--header='ETag: "7ca8f8-a74f-e1ef2a00"'
 	    HEADER=--header="referer: 'http://www.downunder.com'"
 	    ;;
+	daviesreef*)
+	    URL=$(awk 'BEGIN { FS="\"" } /\/webcams\// {  print $2; exit } ' daviesreef.src)
+	    NAME=daviesreef.jpg
+	    /bin/rm -f daviesreef.src
+	    ;;
+	hardyreef*)
+	    URL=$(awk 'BEGIN { FS="\"" } /\/webcams\// {  print $2; exit } ' hardyreef.src)
+	    NAME=hardyreef.jpg
+	    /bin/rm -f hardyreef.src
+	    ;;
 	london_orig*)
 	    # the london skyline has a large black area to the right added.  Remove it.
 	    convert london_orig.jpg -crop 640x376+0+0 london.jpg
 	    /bin/rm london_orig.jpg
 	    NAME=london.jpg
+	    fetch=0
+	    ;;
+	hendriks*)
+	    # this server doesn't like the user-agent we use
+	    wget  --quiet --tries=3 --timeout=300 --prefer-family=IPv4  -O "$NAME" "$URL" 
 	    fetch=0
 	    ;;
     esac
@@ -264,7 +279,8 @@ echo "\nErrors were: $WGETERRORS"
 
 # Restore feh running state
 if [ $fehrunning -eq 0 ] ; then
-    (DISPLAY=:0.0 /usr/local/bin/feh --randomize --auto-zoom --fullscreen --filelist $IMAGEDIR/images --caption-path . --slideshow-delay 30 >/dev/null) &
+    (sleep 5 && /home/nick/bin/fehc) &
+    #(DISPLAY=:0.0 /usr/local/bin/feh --randomize --auto-zoom --fullscreen --filelist $IMAGEDIR/images --caption-path . --slideshow-delay 30 >/dev/null) &
 fi
 
 # vim: set filetype=sh
