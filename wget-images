@@ -111,6 +111,11 @@ function make_date_url {
 	    NAME=hardyreef.jpg
 	    /bin/rm -f hardyreef.src
 	    ;;
+	aimswharf*)
+	    URL=$(awk 'BEGIN { FS="\"" } /\/webcams\// {  print $2; exit } ' aimswharf.src)
+	    NAME=aimswharf.jpg
+	    /bin/rm -f aimswharf.src
+	    ;;
 	london_orig*)
 	    # the london skyline has a large black area to the right added.  Remove it.
 	    convert london_orig.jpg -crop 640x376+0+0 london.jpg
@@ -119,8 +124,9 @@ function make_date_url {
 	    fetch=0
 	    ;;
 	hendriks*)
+	    # This is a rather special case.  I suspect the server is doing some fiddling to prevent direct image download.
 	    # this server doesn't like the user-agent we use
-	    wget  --quiet --tries=3 --timeout=300 --prefer-family=IPv4  -O "$NAME" "$URL" 
+	    wget  --quiet --tries=3 --timeout=300 --prefer-family=IPv4  -O "$NAME" http://www.andreassen.gl/andreassen/video.jpg
 	    fetch=0
 	    ;;
     esac
@@ -180,7 +186,7 @@ function checkupdate {
 # Function to retrieve the current image.  Assumes the relevant variables are already set.
 # TODO An extra flag can be passed in on the function call (e.g. --header=xxx)
 function get_image {
-    wget  --quiet --tries=3 --timeout=300 --prefer-family=IPv4 --user-agent="Mozilla/4.0" $1 -O "$NAME" "$URL" 
+    wget  --quiet --tries=3 --dns-timeout=60 --connect-timeout=120 --read=timeout=300 --prefer-family=IPv4 --user-agent="Mozilla/4.0" $1 -O "$NAME" "$URL" 
     returncode=$?
     if [ $returncode -ne 0 ] ; then
 	WGETERRORS=$WGETERRORS"\nWget failed with $URL, error code is $returncode ${WGETERRCODE[$returncode]}"
